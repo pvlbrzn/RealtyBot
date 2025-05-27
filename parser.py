@@ -24,7 +24,7 @@ def timestamp_to_str(ms):
 
 
 def build_link(house_id):
-    return f"https://eri2.nca.by/api/guest/abandonedObject/{house_id}"
+    return f"https://eri2.nca.by/guest/abandonedObject/{house_id}"
 
 
 async def fetch_page(session, page_number):
@@ -152,6 +152,5 @@ if __name__ == "__main__":
 
 
 #TODO: Подключать бота
-#TODO: Сделать вывод на карте где находятся дома
 #TODO: EXCEL отчет с объекати в ТГ и на вью
 #TODO: Запустить периодический парс и уведомления в бота

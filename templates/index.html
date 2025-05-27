@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Заброшенные дома</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+    <h1>Дома за одну базовую в Минской области</h1>
+
+    <div class="controls">
+        <input type="text" id="search-input" placeholder="Поиск по адресу...">
+
+        <select id="sort-by">
+            <option value="state_date">По дате</option>
+            <option value="position">По адресу</option>
+        </select>
+
+        <select id="sort-order">
+            <option value="desc">По убыванию</option>
+            <option value="asc">По возрастанию</option>
+        </select>
+    </div>
+
+    <div id="house-list"></div>
+
+    <div class="pagination">
+        <button id="prev-page">← Назад</button>
+        <span id="page-number">1</span>
+        <button id="next-page">Вперёд →</button>
+    </div>
+
+    <h2>Карта</h2>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+</html>

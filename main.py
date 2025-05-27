@@ -1,4 +1,8 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, APIRouter
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.requests import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import text
@@ -6,7 +10,16 @@ from sqlalchemy import text
 from db import get_db, init_db
 from models import House
 
-app = FastAPI()
+app = FastAPI(debug=False)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+router = APIRouter()
+
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.on_event("startup")
@@ -24,3 +37,18 @@ async def get_houses(db: AsyncSession = Depends(get_db)):
 async def whoami(db: AsyncSession = Depends(get_db)):
     result = await db.execute(text("SELECT current_user"))
     return {"user": result.scalar_one()}
+
+
+@router.get("/api/houses")
+async def get_houses(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(House).where(House.latitude != None, House.longitude != None))
+    houses = result.scalars().all()
+    return [
+        {
+            "id": house.id,
+            "address": house.position,
+            "lat": house.latitude,
+            "lon": house.longitude
+        }
+        for house in houses
+    ]
