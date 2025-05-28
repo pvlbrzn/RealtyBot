@@ -151,6 +151,9 @@ if __name__ == "__main__":
     asyncio.run(main())
 
 
+async def run_parser():
+    await main()
+
 #TODO: Подключать бота
 #TODO: EXCEL отчет с объекати в ТГ и на вью
 #TODO: Запустить периодический парс и уведомления в бота

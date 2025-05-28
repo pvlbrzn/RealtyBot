@@ -2,38 +2,42 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Заброшенные дома</title>
+    <title>Дома в Беларуси за базовую</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 </head>
 <body>
-    <h1>Дома за одну базовую в Минской области</h1>
+    <div class="container">
+        <h1>Дома за одну базовую в Минской области</h1>
 
-    <div class="controls">
-        <input type="text" id="search-input" placeholder="Поиск по адресу...">
+        <div class="update-section">
+            <button id="run-tasks-btn" class="update-btn">
+                🔄 Обновить данные
+            </button>
+        </div>
 
-        <select id="sort-by">
-            <option value="state_date">По дате</option>
-            <option value="position">По адресу</option>
-        </select>
+        <h2>Карта</h2>
+        <div id="map"></div>
+        <hr>
+        <div class="controls">
+            <input type="text" id="search-input" placeholder="Поиск по адресу...">
 
-        <select id="sort-order">
-            <option value="desc">По убыванию</option>
-            <option value="asc">По возрастанию</option>
-        </select>
+            <select id="sort-by">
+                <option value="state_date">По дате</option>
+                <option value="position">По адресу</option>
+            </select>
+
+            <select id="sort-order">
+                <option value="desc">По убыванию</option>
+                <option value="asc">По возрастанию</option>
+            </select>
+        </div>
+
+        <div id="house-list"></div>
+
+
     </div>
-
-    <div id="house-list"></div>
-
-    <div class="pagination">
-        <button id="prev-page">← Назад</button>
-        <span id="page-number">1</span>
-        <button id="next-page">Вперёд →</button>
-    </div>
-
-    <h2>Карта</h2>
-    <div id="map"></div>
-
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="/static/script.js"></script>
 </body>

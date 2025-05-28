@@ -1,27 +1,24 @@
 let allHouses = [];
 let filteredHouses = [];
-let currentPage = 1;
-const perPage = 10;
 
 const houseList = document.getElementById("house-list");
 const searchInput = document.getElementById("search-input");
 const sortBy = document.getElementById("sort-by");
 const sortOrder = document.getElementById("sort-order");
-const pageNumber = document.getElementById("page-number");
-const prevPageBtn = document.getElementById("prev-page");
-const nextPageBtn = document.getElementById("next-page");
 
 let map;
 let markersLayer;
 
+// Получение данных
 async function fetchHouses() {
     const response = await fetch("/houses");
     const data = await response.json();
     allHouses = data;
-    initMap(); // инициализируем карту после загрузки данных
+    if (!map) initMap(); // инициализируем карту один раз
     applyFilters();
 }
 
+// Фильтрация и сортировка
 function applyFilters() {
     const search = searchInput.value.toLowerCase();
     const field = sortBy.value;
@@ -44,17 +41,14 @@ function applyFilters() {
             return order === "asc" ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
         });
 
-    currentPage = 1;
-    renderPage();
+    renderHouses();
 }
 
-function renderPage() {
-    const start = (currentPage - 1) * perPage;
-    const end = start + perPage;
-    const pageHouses = filteredHouses.slice(start, end);
-
+// Отображение списка домов
+function renderHouses() {
     houseList.innerHTML = "";
-    pageHouses.forEach(house => {
+
+    filteredHouses.forEach(house => {
         const div = document.createElement("div");
         div.className = "house-card";
         div.innerHTML = `
@@ -66,11 +60,7 @@ function renderPage() {
         houseList.appendChild(div);
     });
 
-    pageNumber.textContent = currentPage;
-    prevPageBtn.disabled = currentPage === 1;
-    nextPageBtn.disabled = end >= filteredHouses.length;
-
-    updateMapMarkers(pageHouses);
+    updateMapMarkers(filteredHouses);
 }
 
 // Инициализация карты
@@ -104,25 +94,40 @@ function updateMapMarkers(houses) {
     }
 }
 
-// События
+// События фильтрации
 searchInput.addEventListener("input", applyFilters);
 sortBy.addEventListener("change", applyFilters);
 sortOrder.addEventListener("change", applyFilters);
 
-prevPageBtn.addEventListener("click", () => {
-    if (currentPage > 1) {
-        currentPage--;
-        renderPage();
-    }
-});
+// Кнопка обновления данных
+const runBtn = document.getElementById("run-tasks-btn");
+if (runBtn) {
+    runBtn.addEventListener("click", async () => {
+        runBtn.disabled = true;
+        const originalText = runBtn.innerHTML;
+        runBtn.innerHTML = `<span class="spinner"></span> Обновляется... (обновление может занять несколько минут, подождите⌛)`;
 
-nextPageBtn.addEventListener("click", () => {
-    if (currentPage * perPage < filteredHouses.length) {
-        currentPage++;
-        renderPage();
-    }
-});
+        try {
+            const res = await fetch("/run-tasks", { method: "POST" });
+            const data = await res.json();
+            if (data.status === "ok") {
+                runBtn.innerHTML = "✅ Обновлено";
+                await fetchHouses();
+            } else {
+                runBtn.innerHTML = "⚠️ Ошибка";
+            }
+        } catch {
+            runBtn.innerHTML = "❌ Сбой сети";
+        }
 
+        setTimeout(() => {
+            runBtn.disabled = false;
+            runBtn.innerHTML = originalText;
+        }, 3000);
+    });
+}
+
+// Загрузка при старте
 document.addEventListener("DOMContentLoaded", () => {
     fetchHouses();
 });
