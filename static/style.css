@@ -179,4 +179,42 @@ h1, h2 {
     100% { transform: rotate(360deg); }
 }
 
+/* Стили для страницы 404 */
+.block_404 {
+    text-align: center;
+    margin-top: 10vh;
+    padding: 40px;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.block_404 h1 {
+    font-size: 5em;
+    color: #f44336; /* красный акцент */
+    margin-bottom: 0.2em;
+}
+
+.block_404 p {
+    font-size: 1.5em;
+    color: #ccc;
+    margin-bottom: 1em;
+}
+
+.block_404 a {
+    display: inline-block;
+    background-color: #4fc3f7;
+    color: #000;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+.block_404 a:hover {
+    background-color: #81d4fa;
+}
+
 

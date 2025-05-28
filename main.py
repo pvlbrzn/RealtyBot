@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import text
@@ -69,3 +70,15 @@ async def get_houses(db: AsyncSession = Depends(get_db)):
         }
         for house in houses
     ]
+
+
+@app.exception_handler(StarletteHTTPException)
+async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 404:
+        return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+    return HTMLResponse(content=f"{exc.detail}", status_code=exc.status_code)
+
+
+#TODO: Подключать бота
+#TODO: EXCEL отчет с объекати в ТГ и на вью
+#TODO: Запустить периодический парс и уведомления в бота
