@@ -1,9 +1,14 @@
-from fastapi import FastAPI, Depends, APIRouter
+import sys
+import asyncio
+
+if sys.platform.startswith("win"):
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
+from fastapi import FastAPI, Depends, APIRouter, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.requests import Request
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -12,7 +17,8 @@ from sqlalchemy import text
 from db import get_db, init_db
 from models import House
 from parser import run_parser
-from geocode_addresses import run_geocoder
+
+from pydantic import BaseModel
 
 app = FastAPI(debug=False)
 
@@ -28,15 +34,20 @@ app.add_middleware(
 )
 
 
+class RegionRequest(BaseModel):
+    region: str
+
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.post("/run-tasks")
-async def run_tasks():
-    await run_parser()
-    await run_geocoder()
+async def run_tasks(payload: RegionRequest):
+    if not payload.region:
+        raise HTTPException(status_code=400, detail="Region is required")
+    await run_parser(payload.region)
     return {"status": "ok"}
 
 
@@ -58,7 +69,7 @@ async def whoami(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/api/houses")
-async def get_houses(db: AsyncSession = Depends(get_db)):
+async def get_api_houses(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(House).where(House.latitude != None, House.longitude != None))
     houses = result.scalars().all()
     return [
@@ -79,4 +90,4 @@ async def custom_http_exception_handler(request: Request, exc: StarletteHTTPExce
     return HTMLResponse(content=f"{exc.detail}", status_code=exc.status_code)
 
 
-#TODO: Запустить периодический парс и уведомления в бота
+app.include_router(router)

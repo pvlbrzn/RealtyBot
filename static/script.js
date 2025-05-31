@@ -5,6 +5,7 @@ const houseList = document.getElementById("house-list");
 const searchInput = document.getElementById("search-input");
 const sortBy = document.getElementById("sort-by");
 const sortOrder = document.getElementById("sort-order");
+const regionSelect = document.getElementById("region-select");
 
 let map;
 let markersLayer;
@@ -14,8 +15,36 @@ async function fetchHouses() {
     const response = await fetch("/houses");
     const data = await response.json();
     allHouses = data;
-    if (!map) initMap(); // инициализируем карту один раз
+
+    if (!map) initMap();
+    populateRegionSelect();
     applyFilters();
+}
+
+// Заполнение выпадающего списка регионов
+function populateRegionSelect() {
+    const existingRegions = new Set();
+    for (const opt of regionSelect.options) {
+        existingRegions.add(opt.value);
+    }
+
+    allHouses.forEach(h => {
+        const match = h.position?.match(/([А-Яа-яЁё]+)\s+область/);
+        if (match) {
+            existingRegions.add(match[1].trim() + " область");
+        } else if (h.position?.toLowerCase().includes("минск")) {
+            existingRegions.add("Минск");
+        }
+    });
+
+    // Очистим и перезапишем заново — по объединённому списку
+    regionSelect.innerHTML = "";
+    [...existingRegions].forEach(region => {
+        const option = document.createElement("option");
+        option.value = region;
+        option.textContent = region === "all" ? "Все регионы" : region;
+        regionSelect.appendChild(option);
+    });
 }
 
 // Фильтрация и сортировка
@@ -23,8 +52,10 @@ function applyFilters() {
     const search = searchInput.value.toLowerCase();
     const field = sortBy.value;
     const order = sortOrder.value;
+    const selectedRegion = regionSelect.value;
 
     filteredHouses = allHouses
+        .filter(h => selectedRegion === "all" || h.position?.toLowerCase().includes(selectedRegion.toLowerCase()))
         .filter(h => h.position?.toLowerCase().includes(search))
         .sort((a, b) => {
             let valA = a[field] || "";
@@ -65,7 +96,7 @@ function renderHouses() {
 
 // Инициализация карты
 function initMap() {
-    map = L.map('map').setView([53.9, 27.56], 8); // Центр Минской области
+    map = L.map('map').setView([53.9, 27.56], 8); // Центр Беларуси
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap',
@@ -77,7 +108,6 @@ function initMap() {
 // Обновление маркеров на карте
 function updateMapMarkers(houses) {
     markersLayer.clearLayers();
-
     const bounds = [];
 
     houses.forEach(house => {
@@ -98,6 +128,7 @@ function updateMapMarkers(houses) {
 searchInput.addEventListener("input", applyFilters);
 sortBy.addEventListener("change", applyFilters);
 sortOrder.addEventListener("change", applyFilters);
+regionSelect.addEventListener("change", applyFilters);
 
 // Кнопка обновления данных
 const runBtn = document.getElementById("run-tasks-btn");
@@ -105,10 +136,26 @@ if (runBtn) {
     runBtn.addEventListener("click", async () => {
         runBtn.disabled = true;
         const originalText = runBtn.innerHTML;
-        runBtn.innerHTML = `<span class="spinner"></span> Обновляется... (обновление может занять несколько минут, подождите⌛)`;
+        const selectedRegion = regionSelect.value;
+
+        if (selectedRegion === "all") {
+            runBtn.innerHTML = "⚠️ Выберите конкретный регион";
+            setTimeout(() => {
+                runBtn.innerHTML = originalText;
+                runBtn.disabled = false;
+            }, 3000);
+            return;
+        }
+
+        runBtn.innerHTML = `<span class="spinner"></span> Обновляется... (обновление данных может занять несколько минут, не обновляйте страницу и подождите⌛)`;
 
         try {
-            const res = await fetch("/run-tasks", { method: "POST" });
+            const res = await fetch("/run-tasks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ region: selectedRegion })
+            });
+
             const data = await res.json();
             if (data.status === "ok") {
                 runBtn.innerHTML = "✅ Обновлено";
