@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy import select, delete
 from models import House
 from db import get_db
+from telegram_bot.notifier import notify_new_house
 
 API_URL = "https://eri2.nca.by/api/guest/abandonedObject/search"
 HEADERS = {
@@ -122,7 +123,10 @@ async def save_new_houses(houses):
                     actual=house.get("actual", True)
                 )
                 session.add(db_obj)
+                await session.flush()
                 added += 1
+
+                await notify_new_house(db_obj)
 
         await session.commit()
 

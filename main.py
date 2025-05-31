@@ -79,6 +79,4 @@ async def custom_http_exception_handler(request: Request, exc: StarletteHTTPExce
     return HTMLResponse(content=f"{exc.detail}", status_code=exc.status_code)
 
 
-#TODO: Подключать бота
-#TODO: EXCEL отчет с объекати в ТГ и на вью
 #TODO: Запустить периодический парс и уведомления в бота
